@@ -1,0 +1,29 @@
+{
+  "version": "1.0.2-*",
+
+  "dependencies": {
+    "NETStandard.Library": "1.6.0",
+    "Microsoft.AspNetCore.Mvc.ViewFeatures": "1.0.0"
+  },
+
+  "frameworks": {
+    "netstandard1.6": {
+      "imports": "dnxcore50"
+    }
+  },
+
+  "tooling": {
+    "defaultNamespace": "Premise.Web"
+  },
+
+  "packOptions": {
+    "summary": "Premise is a library for .net core applications to support quick and easy scaffolding of applications. This package contains extension methods for asp.net core.",
+    "tags": ["asp.net core", "mvc", "helper"],
+    "owners": ["mlandi87"],
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/michaellandi/premise"
+    },
+    "licenseUrl": "https://github.com/michaellandi/premise/master/LICENSE.txt"
+  }
+}
