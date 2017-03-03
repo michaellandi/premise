@@ -62,7 +62,7 @@ namespace Premise.Data.EntityFramework
         /// <returns></returns>
         public virtual async Task<IQueryable<T>> GetAllAsync(CancellationToken cancelToken = default(CancellationToken))
         {
-            return (await Context.Set<T>().ToListAsync(cancelToken).ConfigureAwait(false)).AsQueryable();
+            return await Task.FromResult(GetAll()).ConfigureAwait(false);
         }
 
         #endregion
@@ -90,7 +90,9 @@ namespace Premise.Data.EntityFramework
         {
             TryGenerateIds(record);
 
-            await Task.Run(() => Context.Set<T>().Add(record), cancelToken).ConfigureAwait(false);
+            Insert(record);
+            
+            await Task.FromResult<object>(null);
         }
 
         /// <summary>
@@ -114,7 +116,9 @@ namespace Premise.Data.EntityFramework
         {
             TryGenerateIds(records);
 
-            await Task.Run(() => Context.Set<T>().AddRange(records), cancelToken).ConfigureAwait(false);
+            InsertMany(records);
+
+            await Task.FromResult<object>(null);
         }
 
         #endregion
@@ -182,7 +186,9 @@ namespace Premise.Data.EntityFramework
         /// <returns></returns>
         public virtual async Task DeleteAsync(T record, CancellationToken cancelToken = default(CancellationToken))
         {
-            await Task.Run(() => Context.Set<T>().Remove(record), cancelToken).ConfigureAwait(false);
+            Delete(record);
+
+            await Task.FromResult<object>(null);
         }
         
         /// <summary>
@@ -202,7 +208,9 @@ namespace Premise.Data.EntityFramework
         /// <returns></returns>
         public virtual async Task DeleteManyAsync(IEnumerable<T> records, CancellationToken cancelToken = default(CancellationToken))
         {
-            await Task.Run(() => Context.Set<T>().RemoveRange(records), cancelToken).ConfigureAwait(false);
+            DeleteMany(records);
+            
+            await Task.FromResult<object>(null);
         }
 
         /// <summary>
@@ -229,8 +237,10 @@ namespace Premise.Data.EntityFramework
             var record = await GetAsync(id, cancelToken).ConfigureAwait(false);
             if (record != null)
             {
-                await Task.Run(() => Context.Set<T>().Remove(record), cancelToken).ConfigureAwait(false);
+                Context.Set<T>().Remove(record);
             }
+
+            await Task.FromResult<object>(null);
         }
 
         /// <summary>
@@ -257,8 +267,10 @@ namespace Premise.Data.EntityFramework
             var records = await Context.Set<T>().Where(x => ids.Contains(x.Id)).ToListAsync(cancelToken).ConfigureAwait(false);
             if (records != null && records.Any())
             {
-                await Task.Run(() => Context.Set<T>().RemoveRange(records), cancelToken).ConfigureAwait(false);
+                Context.Set<T>().RemoveRange(records);
             }
+            
+            await Task.FromResult<object>(null);
         }
 
         #endregion
