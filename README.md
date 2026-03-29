@@ -1,51 +1,76 @@
-#Premise
-A collection of libraries for .net core applications to support quick and easy scaffolding of applications :).
+# Premise
 
-This library is intended to help .net developers quickly scaffold and build great applications!  From providing support for generic repositories and advanced data structures to helpful UI helpers for popular frameworks, Premise will help save development time and redundant plumbing code in every application!
+A collection of base libraries for .NET Core applications providing quick scaffolding of common patterns — generic repositories, Entity Framework integration, and ASP.NET MVC helpers.
 
-----
+## Packages
+
+| Package | Description |
+|---------|-------------|
+| `Premise.Data` | Core interfaces for the generic repository pattern |
+| `Premise.Data.EntityFramework` | Entity Framework implementation of `IRepository` |
+| `Premise.Web` | ASP.NET Core MVC helpers (select list extensions, etc.) |
 
 ## Premise.Data
-The *Premise.Data* namespace provides all of the neccessary interfaces to implement a generic repository pattern.  The main deliverable of this package is the `IRepository<K,T>` interface which is used to represent a generic repository (with no particular implementation).  This repository can be used by your application to provide an interface to code against.  While using the interface, the underlying data store can be swapped with minimal changes to your business logic.
 
-Initializing an `Repository<K,T>` will quickly provide basic CRUD functionality.  Dependency injection is supported through the use of the generic IRepository interface, allowing underlying data providers to be swapped at runtime.
+Provides `IRepository<K, T>` — a generic repository interface for CRUD operations against any data store. Program against the interface so the underlying provider can be swapped with minimal changes to business logic.
+
+**Full interface:** `Get`, `GetAll`, `Insert`, `InsertMany`, `Update`, `UpdateMany`, `Delete`, `DeleteMany`, `Commit` — all with sync and async variants. Also includes `Reload` for refreshing entities from the store.
+
+Entities implement `IEntity<K>`, or extend `BaseEntity<K>` for a ready-made `Id` property.
 
 ## Premise.Data.EntityFramework
 
-The *Premise.Data.EntityFramework* namespace provides a concrete implementation of the `IRepository` interface provided in the `Premise.Data` package.  The implementation is based upon using Entity Framework as the underlying data store.
+Concrete `EntityRepository<K, T>` implementation backed by Entity Framework Core. Supports automatic GUID generation for new entities.
 
-```
-//Declare new book repository with a Guid Primary Key
-public class BookRepository : Repository<Guid, Book>()
+```csharp
+// Define a repository
+public class BookRepository : EntityRepository<Guid, Book>
 {
-	public BookRepository(IDataContext context) 
-	{
-		//...
-	}
+    public BookRepository(DbContext context) : base(context) { }
 }
+
+// Use it
+var repo = new BookRepository(dbContext);
+
+// Sync
+var books = repo.GetAll();
+repo.Insert(new Book { Title = "Example" });
+repo.Commit();
+
+// Async
+var books = await repo.GetAllAsync();
+await repo.InsertAsync(new Book { Title = "Example" });
+await repo.CommitAsync();
+
+// Bulk operations
+await repo.InsertManyAsync(bookList);
+await repo.DeleteManyAsync(new[] { id1, id2 });
 ```
 
-```
-//CRUD actions available for use
-var repository = new BookRepository(DbContext);
-var books = repository.GetAll();
+## Premise.Web
+
+ASP.NET Core MVC helpers.
+
+**`SelectListExtensions.FromEnum<T>()`** — builds a `SelectListItem` collection from any enum for use in Razor dropdowns:
+
+```csharp
+public enum Genre { Fiction, NonFiction, Mystery }
+
+// In your controller/view model
+ViewBag.Genres = SelectListExtensions.FromEnum<Genre>();
 ```
 
-```
-//Async/Await Api support
-var repository = new BookRepository(DbContext);
-var books = await repository.GetAllAsync();
+```html
+@Html.DropDownListFor(m => m.Genre, (IEnumerable<SelectListItem>)ViewBag.Genres)
 ```
 
-Support for advanced paging is automatically brought in using the generic *Pageable* interface.
-```
-[HttpGet]
-public async Task<IActionResult> IndexAsync(int page, int pageSize = 10)
-{
-	var repository = new Repository<Book>();
-	var books = await repository.GetAllAsync(page, pageSize);
+## Building
 
-    return View(books);
-}
+```bash
+cd src
+bash build.sh
 ```
 
+## License
+
+MIT License. See [LICENSE](LICENSE) for details.
